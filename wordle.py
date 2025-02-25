@@ -31,12 +31,9 @@ class Word(BaseModel):
 
 #create a list and append each word user inputs to over board list
 class Board(BaseModel):
-    board: List[Word] = [] #Field([], max_length=MAX_USER_GUESSES)
+    board: List[Word] = Field([], max_length=MAX_USER_GUESSES)
 
     def insert_user_guess(self, user_guess: Word) -> list:
-        # self.board.append(user_guess)
-        # print(f'USER GUESS')
-        # print(user_guess)
         letter_names = []
         for letter in user_guess.word:
             letter_name = letter.name
@@ -87,7 +84,6 @@ def main(): #just write the structure of the game as pseudocode in the main loop
 
     #iterate over user guess from stdin
     # for user_guess in range(6):
-    #crate board for user guesses to be stored
     user_guess = 'users' #this will be taken from stdin
     str_to_word_obj = Word.create(user_guess)
     # print(str_to_word_obj.word[0].name)
