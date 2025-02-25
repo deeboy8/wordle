@@ -42,8 +42,8 @@ class Board(BaseModel):
             letter_name = letter.name
             print(f'Letter: {letter_name}')
             letter_names.append(letter_name)
-            
-        return self.board
+
+        return self.board.append(letter_names)
 
 class Alphabet(BaseModel):
     # alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
@@ -93,7 +93,7 @@ def main(): #just write the structure of the game as pseudocode in the main loop
     # print(str_to_word_obj.word[0].name)
     obj = Board()
     obj.insert_user_guess(str_to_word_obj)
-    # print(obj)
+    print(obj)
     
 
 if __name__ == "__main__":
