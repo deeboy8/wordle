@@ -6,7 +6,8 @@ from pydantic import BaseModel, Field
 MAX_USER_GUESSES = 6
 MAX_WORD_LEN = 5
 
-#various states each individual can hold to signify to user if letter position is in secrect word
+#states each individual letter can hold
+#state will dictate color to be used to convery if letter is in the secret word, not in the secrect word or misplaced
 class LetterState(Enum):
     unselected = "UNSELECTED" 
     grey = "GREY"
@@ -14,51 +15,50 @@ class LetterState(Enum):
     yellow = "YELLOW"
 
 class Letter(BaseModel):
-    def __init__(self, name: str): #use annotqtion to set to 1 char
-        self.name: str = Field(max_length = 1)
-        self.letter_state: LetterState = LetterState.unselected 
-    
-    #TODO pydantic validation to ensure LetterState is accurate and not returned to unselected
-    # def set_letter_state(new_value: LetterState): #setter, getter
-    #     pass
+    #pydantic requires fields to be defined at the class level for inheritance with BaseModel
+    name: str = Field(max_length=1)
+    letter_state: LetterState = Field(default=LetterState.unselected) #TODO pydantic validation to ensure LetterState is accurate and not returned to unselected
 
+#word will be string user passes in from stdin
+#must be converted from a string word to a list of letters
 class Word(BaseModel):
-    #wht is a word going to contain? -> a bunch of letters => word of five letters
-    #TODO pydantic: no longer than five letters
-    # word: List[Letter] = []
-    def __init__(self, word: str):
-        self.word: List[Letter] = Field(min_length = 5, max_length = 5)
-        # iterate over string passed from user appending letter to the internal list
-        for ch in word:
-            ch_to_letter = Letter(ch)
-            self.word.append(ch_to_letter)
+    word: List[Letter] = Field(list, min_length=5, max_length=5)
 
+    @classmethod #LEARNING: class methods give access to class objects (access class attri or methods) but NOT the instance object itself
+    def create(cls, word_str: str):
+        return cls(word = [Letter(name=ch) for ch in word_str])
+
+
+#create a list and append each word user inputs to over board list
 class Board(BaseModel):
-    # def __init__(self):
-    #     self.board: List[Word] = Field(default_factory = lambda: [Word(user_word = []) for _ in range(MAX_USER_GUESS‹ES)])
-    # board: List[Word] = Field(default_factory = lambda: [Word(user_word = []) for _ in range(MAX_USER_GUESS‹ES)])
-    board: List[Word] = Field(max_length = MAX_WORD_LEN)
+    board: List[Word] = [] #Field([], max_length=MAX_USER_GUESSES)
 
-    
+    def insert_user_guess(self, user_guess: Word) -> list:
+        # self.board.append(user_guess)
+        # print(f'USER GUESS')
+        # print(user_guess)
+        letter_names = []
+        for letter in user_guess.word:
+            letter_name = letter.name
+            print(f'Letter: {letter_name}')
+            letter_names.append(letter_name)
+            
+        return self.board
 
 class Alphabet(BaseModel):
-    #used for tracking
-    def __init__(self):
-        self.alpha = [Letter(x) for x in range('a' - 'z')] #generate list letters a-z
+    # alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
+    pass 
 
 class Player (BaseModel):
+    player_name: str 
     number_of_guess: int 
-
-#number of guesses
-#name
+    pass 
 
 class Game(BaseModel): 
-    def __init__(self, name):
-        self.alphabet = Alphabet()
-        self.player = Player(name)
-        self.board = Board()
-        pass
-        #open txt file w list of words
+    # alphabet = Alphabet()
+    # # player = Player(name)
+    # board = Board()
+    #open txt file w list of words
 
     def get_secrect_word():
         #choose a secrect word randomly
@@ -68,7 +68,7 @@ class Game(BaseModel):
         #take in user guess and hold in variable
         pass
 
-    ################################
+#     ################################
     #methods below this line will be used after user inputs guess
     #methods above are to be run to initialize a game object 
     def validate_guess_in_dictionary(self) -> bool:
@@ -85,12 +85,16 @@ def main(): #just write the structure of the game as pseudocode in the main loop
         #choose secrect word and store in var
     #read in user guess and store in var
 
+    #iterate over user guess from stdin
+    # for user_guess in range(6):
     #crate board for user guesses to be stored
-    board = Board()
-    print(board)
-    #for loop of six guess
-        #
-    pass
+    user_guess = 'users' #this will be taken from stdin
+    str_to_word_obj = Word.create(user_guess)
+    # print(str_to_word_obj.word[0].name)
+    obj = Board()
+    obj.insert_user_guess(str_to_word_obj)
+    # print(obj)
+    
 
 if __name__ == "__main__":
     main()
