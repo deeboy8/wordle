@@ -1,5 +1,6 @@
 
 from typing import List
+from typing_extensions import Self
 from enum import Enum
 from pydantic import BaseModel, Field
 
@@ -22,25 +23,31 @@ class Letter(BaseModel):
 #word will be string user passes in from stdin
 #must be converted from a string word to a list of letters
 class Word(BaseModel):
-    word: List[Letter] = Field(list, min_length=5, max_length=5)
+    """Will return a Word class"""
+    word: List[Letter] = Field([], min_length=5, max_length=5)
 
     @classmethod #LEARNING: class methods give access to class objects (access class attri or methods) but NOT the instance object itself
-    def create(cls, word_str: str):
+    def create(cls, word_str: str) -> 'Word': 
         return cls(word = [Letter(name=ch) for ch in word_str])
 
 
 #create a list and append each word user inputs to over board list
+
 class Board(BaseModel):
     board: List[Word] = Field([], max_length=MAX_USER_GUESSES)
 
-    def insert_user_guess(self, user_guess: Word) -> list:
-        letter_names = []
-        for letter in user_guess.word:
-            letter_name = letter.name
-            print(f'Letter: {letter_name}')
-            letter_names.append(letter_name)
+    """Do not need this to decompose the Word object created by Word class
+       We need to insert the object directly in to the list so it holds a sequence of Word objects
+    """
+    def insert_user_guess(self, user_guess: Word) -> list: #TODO: THIS IS WRONG! DECOMPOSING WORD OBJECT TO PRIMITIVE NAMES WHEN DON'T NEED RIGHT NOW
+        # letter_names = []
+        # for letter in user_guess.word:
+        #     letter_name = letter.name
+        #     # print(f'Letter: {letter_name}')
+        #     letter_names.append(letter_name)
 
-        return self.board.append(letter_names)
+        # return self.board.append(letter_names)
+        return self.board.append(user_guess)
 
 class Alphabet(BaseModel):
     # alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
@@ -84,11 +91,14 @@ def main(): #just write the structure of the game as pseudocode in the main loop
 
     #iterate over user guess from stdin
     # for user_guess in range(6):
-    user_guess = 'users' #this will be taken from stdin
-    str_to_word_obj = Word.create(user_guess)
+    # user_guess = 'users' #this will be taken from stdin
+    str_to_word_obj = Word.create('happy')
     # print(str_to_word_obj.word[0].name)
+    # print(str_to_word_obj)
     obj = Board()
     obj.insert_user_guess(str_to_word_obj)
+    str_to_word_obj_2 = Word.create('power')
+    obj.insert_user_guess(str_to_word_obj_2)
     print(obj)
     
 
