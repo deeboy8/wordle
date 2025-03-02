@@ -16,41 +16,31 @@ class LetterState(Enum):
     yellow = "YELLOW"
 
 class Letter(BaseModel):
-    #pydantic requires fields to be defined at the class level for inheritance with BaseModel
     name: str = Field(max_length=1)
     letter_state: LetterState = Field(default=LetterState.unselected) #TODO pydantic validation to ensure LetterState is accurate and not returned to unselected
 
 #word will be string user passes in from stdin
 #must be converted from a string word to a list of letters
 class Word(BaseModel):
-    """Will return a Word class"""
+    """Will generate a Word class object"""
     word: List[Letter] = Field([], min_length=5, max_length=5)
 
-    @classmethod #LEARNING: class methods give access to class objects (access class attri or methods) but NOT the instance object itself
+    #LEARNING: class methods give access to class objects (access class attri or methods) but NOT the instance object itself
+    #TODO: why using class method better option than a general 
+    @classmethod
     def create(cls, word_str: str) -> 'Word': 
         return cls(word = [Letter(name=ch) for ch in word_str])
 
-
-#create a list and append each word user inputs to over board list
-
+#create a Board as a list and appends each user word 
 class Board(BaseModel):
     board: List[Word] = Field([], max_length=MAX_USER_GUESSES)
 
-    """Do not need this to decompose the Word object created by Word class
-       We need to insert the object directly in to the list so it holds a sequence of Word objects
-    """
-    def insert_user_guess(self, user_guess: Word) -> list: #TODO: THIS IS WRONG! DECOMPOSING WORD OBJECT TO PRIMITIVE NAMES WHEN DON'T NEED RIGHT NOW
-        # letter_names = []
-        # for letter in user_guess.word:
-        #     letter_name = letter.name
-        #     # print(f'Letter: {letter_name}')
-        #     letter_names.append(letter_name)
-
-        # return self.board.append(letter_names)
+    def insert_user_guess(self, user_guess: Word) -> list:
         return self.board.append(user_guess)
 
 class Alphabet(BaseModel):
-    # alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
+    #TODO: this will be used in the main loop to update letter after being appended to Board
+    alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
     pass 
 
 class Player (BaseModel):
@@ -72,7 +62,7 @@ class Game(BaseModel):
         #take in user guess and hold in variable
         pass
 
-#     ################################
+##############################################
     #methods below this line will be used after user inputs guess
     #methods above are to be run to initialize a game object 
     def validate_guess_in_dictionary(self) -> bool:
@@ -83,8 +73,10 @@ class Game(BaseModel):
         #return five pieces of info one per letter
         pass
 
-def main(): #just write the structure of the game as pseudocode in the main loop 
+#just write the structure of the game as pseudocode in the main loop
+def main():  
     #create an instance of a game aka create a game object
+        #ask for basic details of the user
     #open file with list of potential words
         #choose secrect word and store in var
     #read in user guess and store in var
@@ -92,6 +84,8 @@ def main(): #just write the structure of the game as pseudocode in the main loop
     #iterate over user guess from stdin
     # for user_guess in range(6):
     # user_guess = 'users' #this will be taken from stdin
+
+    #####################################
     str_to_word_obj = Word.create('happy')
     # print(str_to_word_obj.word[0].name)
     # print(str_to_word_obj)
