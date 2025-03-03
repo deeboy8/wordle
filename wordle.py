@@ -49,11 +49,6 @@ class Player (BaseModel):
     pass 
 
 class Game(BaseModel): 
-    # alphabet = Alphabet()
-    # # player = Player(name)
-    # board = Board()
-    #open txt file w list of words
-
     def get_secrect_word():
         #choose a secrect word randomly
         pass
@@ -69,21 +64,33 @@ class Game(BaseModel):
         #check if word in dictionary of words
         pass
 
-    def score_user_guess(self):
+    def score_user_guess(self): 
         #return five pieces of info one per letter
         pass
 
 #just write the structure of the game as pseudocode in the main loop
 def main():  
-    #create an instance of a game aka create a game object
+    #create an instance of a game 
         #ask for basic details of the user
-    #open file with list of potential words
-        #choose secrect word and store in var
+    #open file with list of words
+    #choose secrect word and store in var
     #read in user guess and store in var
 
-    #iterate over user guess from stdin
-    # for user_guess in range(6):
-    # user_guess = 'users' #this will be taken from stdin
+    #iterate over user guesses from stdin
+        #user enters guess
+        #validate user guess in dict
+        #score user guess
+            #convert user guess into a Word obj
+            #enter word object into Board
+            #update state of alphabets based on user guess
+            #update player info (ie. guesses)
+            #if ansewr corrects:
+                #output congrats
+            #else
+                #output user guess to terminal 
+                    #highlight colors
+        
+        
 
     #####################################
     str_to_word_obj = Word.create('happy')
