@@ -19,7 +19,7 @@ class Letter(BaseModel):
     name: str = Field(max_length=1)
     letter_state: LetterState = Field(default=LetterState.unselected) #TODO pydantic validation to ensure LetterState is accurate and not returned to unselected
 
-#word will be string user passes in from stdin
+#!word will be string user passes in from stdin
 #must be converted from a string word to a list of letters
 class Word(BaseModel):
     """Will generate a Word class object"""
@@ -63,34 +63,34 @@ class Game(BaseModel):
     def validate_guess_in_dictionary(self) -> bool:
         #check if word in dictionary of words
         pass
-
-    def score_user_guess(self): 
+    
+    #TODO: CREATE METHOD TO SHARE USER SUCCESSFUL OR NOT
+    def score_user_guess(self): #TODO: MOVE TO WORD CLASS
         #return five pieces of info one per letter
         pass
 
 #just write the structure of the game as pseudocode in the main loop
 def main():  
     #create an instance of a game 
-        #ask for basic details of the user
+        #generate player obj
+            #ask for basic details of the user
     #open file with list of words
     #choose secrect word and store in var
-    #read in user guess and store in var
 
-    #iterate over user guesses from stdin
+    #iterate over MAX_USER_GUESSES - GAME LOOP -> 1. once have word, compare against secrect word (updated state of word)
         #user enters guess
-        #validate user guess in dict
+        #validate user guess in dict list of potential words #TODO: have to remove a word from a list if it doesn't meet criteria (BINARY SEARCH)
         #score user guess
-            #convert user guess into a Word obj
-            #enter word object into Board
+            #convert user guess into a Word obj #TODO: may be created earlier than inside this loop
+            #create a Board obj #TODO: NOT HERE. DON'T NEED A NEW BOARD FOR EACH GAME. game and board seem very tightly coupled as need one of each. Board may never be seen by rest of implemenation, only used by Game obj
             #update state of alphabets based on user guess
-            #update player info (ie. guesses)
+#TODO: WHERE DO WE UPDATE THE LETTER WITHIN THE WORD
+            #update player info (ie. guesses) #TODO: DON'T NEED A NEW PLAYER FOR EACH WORD
             #if ansewr corrects:
                 #output congrats
             #else
                 #output user guess to terminal 
                     #highlight colors
-        
-        
 
     #####################################
     str_to_word_obj = Word.create('happy')
