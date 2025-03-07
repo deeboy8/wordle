@@ -86,7 +86,7 @@ class Board(BaseModel):
     def insert_user_guess(self, user_guess: Word) -> list:
         return self.board.append(user_guess)
 
-#! hard mode will use this class most likely
+#! hard mode will use this class most likely hack, bug, perf, ux, etc.
 class Alphabet(BaseModel): #! DG: do we really need this?
     alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
     
