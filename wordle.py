@@ -12,7 +12,7 @@ MAX_WORD_LEN = 5
 #states each individual letter can hold
 #state will dictate color to be used to convery if letter is in the secret word, not in the secrect word or misplaced
 class LetterState(Enum):
-    unselected = "UNSELECTED" 
+    unselected = "UNSELECTED" # blue
     grey = "GREY"
     green = "GREEN"
     yellow = "YELLOW"
@@ -86,12 +86,14 @@ class Board(BaseModel):
     def insert_user_guess(self, user_guess: Word) -> list:
         return self.board.append(user_guess)
 
-class Alphabet(BaseModel):
-    #TODO: this will be used in the main loop to update letter after being appended to Board
+class Alphabet(BaseModel): #! DG: do we really need this?
     alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
-    pass 
+    
+    def update_letter_state(self, ch: str) -> None:
+        #letter state changed to appropriate color
+        pass
 
-class Player (BaseModel):
+class Player(BaseModel):
     player_name: str 
     number_of_guess: int 
     pass 
@@ -131,24 +133,17 @@ def main():
         #user enters guess
             # convert to lowercase
             # convert to word object -> create()
-            # validate if it is five letters long
-                #if not return output length is too long or short
-            # each letter is an ASCII character a-z
-                #if not return output length is too long or short
-            #validate if guess in list of vocabulary list
-        #compare against secret word
+            # validate 
+                # five letters long #TODO: ADD PYDANTIC VALIDATION
+                    # if not return i/o length is too long or short
+                # each letter is an ASCII character a-z
+                    # if not, i/o indicating length is too long or short #TODO: ADD PYDANTIC VALIDATION
+                # validate if guess in list of vocabulary list
+        # compare against secret word
             #user_guess == secrect_word
-                #if correct -> congrats
-        
+                #if correct -> i/o congratulations
         #score word
-            #criteria: 
-            # is letter in secret word
-                #if not, remove word from vocabulary list -> GREY
-                #update general alphabet state from Alphabet class 
-            #letter in word but not in correct location -> YELLOW
-                # update letter state
-            #letter in word and correct position
-                # update latter state
+        # update alphabet list
         #update player details (ie. guesses) 
         #if ansewr corrects (aka all letters match secrect word)
             #output congrats
