@@ -86,6 +86,7 @@ class Board(BaseModel):
     def insert_user_guess(self, user_guess: Word) -> list:
         return self.board.append(user_guess)
 
+#! hard mode will use this class most likely
 class Alphabet(BaseModel): #! DG: do we really need this?
     alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
     
@@ -99,6 +100,7 @@ class Player(BaseModel):
     pass 
 
 class Game(BaseModel): 
+    board = Board()
     #gather basic information about user- name
     #import txt file with potential words and return a list data class
     def convert_vocabulary_to_list(self, file_name: str):
@@ -112,29 +114,36 @@ class Game(BaseModel):
     def user_guess():
         pass
 
-    def generate_board_object():
-        pass 
+    # def generate_board_object():
+    #     pass 
 
-    def generate_player_object():
-        pass
+    # def generate_player_object():
+    #     pass
 
 #just write the structure of the game as pseudocode in the main loop
 def main():  
     #create an instance of a game
-    game = Game()
+    #*player = Player(name: str) 
+                       #TODO: HOW TO PASS IN PLAYER OBJECT TO GAME OBJECT
+    game = Game() #*pass in player but keeps them decoupled. Decoupled: 
+        #*constantly think: what if I swap out. oop/ood heavily focused on interface. ask: if I swap out implementation, will it impact anything else.
+        #*class def, methods, availbe to user == INTERFACE and declaration, definition and implemenation = HOW DOES THINGS?
+            #* if change implementation, there should be no difference to user bc only dependent on definition
+            #* interface is constant 
+    #create a player #TODO: normalize terminology: user vs player #TODO: add as class var in game class
         #ask for basic details of the user
-        #open file with optional words and turn into a list of words called vocabulary
-        #choose secrect word and store in var
-        #generate a board object #! DG mentioned user won't have access to Board by placing here in Game obj. what do you mean?
-        #generate a player obj
-        #generate alphabet class
+    #open file with optional words and turn into a list of words called vocabulary
+        #TODO: make a sorted list
+    #choose secret word and store in str var
+        #generate a board obj #TODO: add as class var in game cla  #! DG mentioned user won't have access to Board by placing here in Game obj. what do you mean? answer: keep it all internal 
+        #generate alphabet obj #TODO: add as class var in game class
     
     #iterate over MAX_USER_GUESSES - GAME LOOP -> 1. once have word, compare against secrect word (updated state of word)
         #user enters guess
-            # convert to lowercase
+            # convert to lowercase #normalize in terms of spaces -> convert data to format that is assumed as normal format 
             # convert to word object -> create()
-            # validate 
-                # five letters long #TODO: ADD PYDANTIC VALIDATION
+            # validate #TODO: ADD PYDANTIC VALIDATION
+                # five letters long #//TODO: ADD PYDANTIC VALIDATION
                     # if not return i/o length is too long or short
                 # each letter is an ASCII character a-z
                     # if not, i/o indicating length is too long or short #TODO: ADD PYDANTIC VALIDATION
@@ -149,7 +158,7 @@ def main():
             #output congrats
         #else
             #output user guess to terminal 
-                #highlight colors
+                #highlight colors #TODO: must say to game -> board to UPDATE yourself aka pushing responsibility down to lowest point 
     
 
 if __name__ == "__main__":
