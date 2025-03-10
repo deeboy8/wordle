@@ -3,11 +3,13 @@ from typing import List
 from typing_extensions import Self
 from enum import Enum
 from pydantic import BaseModel, Field
+import random
 
 """!?//todo*"""
 
 MAX_USER_GUESSES = 6
 MAX_WORD_LEN = 5
+TEXT_FILE = 'vocabulary.txt'
 
 #states each individual letter can hold
 #state will dictate color to be used to convery if letter is in the secret word, not in the secrect word or misplaced
@@ -107,20 +109,23 @@ class Player(BaseModel):
     name: str 
     number_of_guess: int 
 
-    def get_player_name(self):
-        pass
+    def get_player_name(self, name, number_of_guess):
+        return f"name is: {name} and you have {number_of_guess} remaining"
 
 class Game(BaseModel): 
     board: List[List] = Board()
-    player: Player 
-    #gather basic information about user- name
-    #import txt file with potential words and return a list data class
+    player: Player
+    # alphabet: Alphabet = Alphabet()
+
+    #import txt of five letter words and return a list 
     def convert_vocabulary_to_list(self, file_name: str):
-        pass
+        with open(file_name, "r") as file:
+            return sorted([line.strip() for line in file])
     
     #randomly choose a secrect word and return chosen word
-    def get_secrect_word(self, list_of_words: list):
-        pass
+    def get_secrect_word(self, list_of_words: list, file_len: int):
+        random_int: int = random.randint(1, file_len)
+        return list_of_words[random_int]
     
     #container for user guess
     def user_guess():
@@ -130,21 +135,13 @@ class Game(BaseModel):
     def update(self):
         pass
 
-def main():  
-    player = Player() 
-    game = Game(player) 
-    print(game.player.name)
-        #*constantly think: what if I swap out. oop/ood heavily focused on interface. ask: if I swap out implementation, will it impact anything else.
-        #*class def, methods, availbe to user == INTERFACE and declaration, definition and implemenation = HOW DOES THINGS?
-            #* if change implementation, there should be no difference to user bc only dependent on definition
-            #* interface is constant 
-    #create a player 
-        #ask for basic details of the user
-    #open file with optional words and turn into a list of words called vocabulary
-        #TODO: make a sorted list
-    #choose secret word and store in str var
-        #generate a board obj #TODO: add as class var in game cla  #! DG mentioned user won't have access to Board by placing here in Game obj. what do you mean? answer: keep it all internal 
-        #generate alphabet obj #TODO: add as class var in game class
+def main():
+    print(f"Welcome to Wordle")
+    name: str = input("please enter your name: ")
+    player: Player = Player(name=name, number_of_guess=MAX_USER_GUESSES)
+    game: Game = Game(player=player)
+    res: list = game.convert_vocabulary_to_list(TEXT_FILE)
+    secrect_word: str = game.get_secrect_word(res, len(res))
     
     #iterate over MAX_USER_GUESSES - GAME LOOP 
         #user enters guess
