@@ -66,12 +66,21 @@ class Word(BaseModel):
         # remove string from list 
         pass 
 
-    #score user_guess for each letter in guess
-    def score_user_guess(self, secret_word: str, user_guess: Self) -> None:
+    def is_letter_in_secrect_word(self, ch: str, secrect_word: str) -> bool:
+        pass
+
+    def is_letter_in_correct_index(self, ch_index: int, secrect_word: str) -> bool:
+        pass
+
+    #will only return bool data and update letter_state changes
+    #board will be updated by Game obj
+    def score_user_guess(self, secret_word: str, user_guess: Self, secrect_word: str) -> None:
         #for loop iterating over each letter
-                # if letter in word and in correct location (index): 
+            # need to check if ch in word (iteration) and equivalent to the same index position
+            # therefore need two fx to return bools
+                # if both fx:
                     # update state with green
-                # elif letter in word but in wrong location (index):
+                # elif letter_found and index_pos is False:
                     # change state to yellow
                 # else:
                     #1. change state color to grey
@@ -86,21 +95,24 @@ class Board(BaseModel):
     def insert_user_guess(self, user_guess: Word) -> list:
         return self.board.append(user_guess)
 
-#! hard mode will use this class most likely hack, bug, perf, ux, etc.
-class Alphabet(BaseModel): #! DG: do we really need this?
-    alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
+#! hard mode will use this class
+# class Alphabet(BaseModel): 
+#     alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
     
-    def update_letter_state(self, ch: str) -> None:
-        #letter state changed to appropriate color
-        pass
+#     def update_letter_state(self, ch: str) -> None:
+#         #letter state changed to appropriate color
+#         pass
 
 class Player(BaseModel):
-    player_name: str 
+    name: str 
     number_of_guess: int 
-    pass 
+
+    def get_player_name(self):
+        pass
 
 class Game(BaseModel): 
-    board = Board()
+    board: List[List] = Board()
+    player: Player 
     #gather basic information about user- name
     #import txt file with potential words and return a list data class
     def convert_vocabulary_to_list(self, file_name: str):
@@ -114,23 +126,19 @@ class Game(BaseModel):
     def user_guess():
         pass
 
-    # def generate_board_object():
-    #     pass 
+    #udpate board, to update game, Word and Player objects
+    def update(self):
+        pass
 
-    # def generate_player_object():
-    #     pass
-
-#just write the structure of the game as pseudocode in the main loop
 def main():  
-    #create an instance of a game
-    #*player = Player(name: str) 
-                       #TODO: HOW TO PASS IN PLAYER OBJECT TO GAME OBJECT
-    game = Game() #*pass in player but keeps them decoupled. Decoupled: 
+    player = Player() 
+    game = Game(player) 
+    print(game.player.name)
         #*constantly think: what if I swap out. oop/ood heavily focused on interface. ask: if I swap out implementation, will it impact anything else.
         #*class def, methods, availbe to user == INTERFACE and declaration, definition and implemenation = HOW DOES THINGS?
             #* if change implementation, there should be no difference to user bc only dependent on definition
             #* interface is constant 
-    #create a player #TODO: normalize terminology: user vs player #TODO: add as class var in game class
+    #create a player 
         #ask for basic details of the user
     #open file with optional words and turn into a list of words called vocabulary
         #TODO: make a sorted list
@@ -138,27 +146,33 @@ def main():
         #generate a board obj #TODO: add as class var in game cla  #! DG mentioned user won't have access to Board by placing here in Game obj. what do you mean? answer: keep it all internal 
         #generate alphabet obj #TODO: add as class var in game class
     
-    #iterate over MAX_USER_GUESSES - GAME LOOP -> 1. once have word, compare against secrect word (updated state of word)
+    #iterate over MAX_USER_GUESSES - GAME LOOP 
         #user enters guess
-            # convert to lowercase #normalize in terms of spaces -> convert data to format that is assumed as normal format 
+            # convert to lowercase 
+                #TODO: normalize to include things like removing spaces,  etc -> convert data to format that is assumed as normal format 
             # convert to word object -> create()
             # validate #TODO: ADD PYDANTIC VALIDATION
                 # five letters long #//TODO: ADD PYDANTIC VALIDATION
-                    # if not return i/o length is too long or short
+                    # if not return i/o length is too long or short #TODO: COMBINE LENGTH AND ASCII (gtt, lt 'a' 'z') into pydantic field
                 # each letter is an ASCII character a-z
                     # if not, i/o indicating length is too long or short #TODO: ADD PYDANTIC VALIDATION
                 # validate if guess in list of vocabulary list
-        # compare against secret word
+        # compare against secret word -> #! preliminary check off top
             #user_guess == secrect_word
                 #if correct -> i/o congratulations
+        # convert to word object -> create() #TODO: make word obj here or above
         #score word
-        # update alphabet list
-        #update player details (ie. guesses) 
-        #if ansewr corrects (aka all letters match secrect word)
-            #output congrats
-        #else
-            #output user guess to terminal 
-                #highlight colors #TODO: must say to game -> board to UPDATE yourself aka pushing responsibility down to lowest point 
+            #only focus is to determine position and correct letters and update information
+
+            #TODO: must say to game -> board to UPDATE yourself aka pushing responsibility down to lowest point 
+        # update board
+            #use game object to update Player (update details), Board (update letters) 
+
+#idea: create a dict in score word where letter is key and value is letter state information
+    #change letter_state in word object
+    #pass word object to Game which will update board
+        
+        
     
 
 if __name__ == "__main__":
