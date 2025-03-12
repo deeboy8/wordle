@@ -2,7 +2,7 @@
 from typing import List
 from typing_extensions import Self
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 import random
 
 """!?//todo*"""
@@ -25,18 +25,13 @@ class Letter(BaseModel):
 
 #word will be string user passes in from stdin
 #must be converted from a string word to a list of letters
-class Word(BaseModel):
+class Word(BaseModel): #! class is self contained; it doesn't know about where it's being called
     """Will generate a Word class object"""
-    word: List[Letter] = Field([], min_length=5, max_length=5)
-
-    #LEARNING: class methods give access to class objects (access class attri or methods) but NOT the instance object itself
-    #TODO: why using class method better option than a general 
+    word: List[Letter] = Field([], min_length=5, max_length=5) #TODO is in vocabulary and in ascii chars   
+                                                                    #TODO:maybe move ascii check move to letters
     @classmethod
     def create(cls, word_str: str) -> 'Word': 
         return cls(word = [Letter(name=ch) for ch in word_str])
-    
-    def convert_guess_to_lowercase(self, user_guess: str) -> str:
-        return user_guess.lower()
 
     #validate user_guess length and present in dictionary and each char is ASCII a-z
     def validate_user_guess(self, user_guess: str) -> bool:
@@ -107,7 +102,7 @@ class Board(BaseModel):
 
 class Player(BaseModel):
     name: str 
-    number_of_guess: int 
+    number_of_guess: int = MAX_USER_GUESSES
 
     def get_player_name(self, name, number_of_guess):
         return f"name is: {name} and you have {number_of_guess} remaining"
@@ -135,18 +130,23 @@ class Game(BaseModel):
     def update(self):
         pass
 
+     # Normalize player guess by making lowercase and removing any whitespace
+    def normalize_player_guess(self, player_guess: str) -> str:
+        return "".join(player_guess.lower().split())
+
 def main():
     print(f"Welcome to Wordle")
-    name: str = input("please enter your name: ")
-    player: Player = Player(name=name, number_of_guess=MAX_USER_GUESSES)
+    name: str = input("Please enter your name: ")
+    player: Player = Player(name=name, number_of_guesses=MAX_USER_GUESSES)
     game: Game = Game(player=player)
-    res: list = game.convert_vocabulary_to_list(TEXT_FILE)
-    secrect_word: str = game.get_secrect_word(res, len(res))
+    vocabulary_list: list = game.convert_vocabulary_to_list(TEXT_FILE)
+    secrect_word: str = game.get_secrect_word(vocabulary_list, len(vocabulary_list))
     
-    #iterate over MAX_USER_GUESSES - GAME LOOP 
+    #iterate over MAX_USER_GUESSES - GAME LOOP
+    for guess in range(MAX_USER_GUESSES):
         #user enters guess
-            # convert to lowercase 
-                #TODO: normalize to include things like removing spaces,  etc -> convert data to format that is assumed as normal format 
+        player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))     
+        print(player_guess)       
             # convert to word object -> create()
             # validate #TODO: ADD PYDANTIC VALIDATION
                 # five letters long #//TODO: ADD PYDANTIC VALIDATION
@@ -154,10 +154,8 @@ def main():
                 # each letter is an ASCII character a-z
                     # if not, i/o indicating length is too long or short #TODO: ADD PYDANTIC VALIDATION
                 # validate if guess in list of vocabulary list
-        # compare against secret word -> #! preliminary check off top
-            #user_guess == secrect_word
-                #if correct -> i/o congratulations
-        # convert to word object -> create() #TODO: make word obj here or above
+        # compare against secret word 
+            #if correct -> i/o congratulations
         #score word
             #only focus is to determine position and correct letters and update information
 
@@ -169,7 +167,7 @@ def main():
     #change letter_state in word object
     #pass word object to Game which will update board
         
-        
+#TODO: how will you compare a str (secrect_word) to a word object (player_guess) -> Python may have a method for this
     
 
 if __name__ == "__main__":
