@@ -2,7 +2,7 @@
 from typing import List
 from typing_extensions import Self
 from enum import Enum
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 import random
 
 """!?//todo*"""
@@ -25,30 +25,35 @@ class Letter(BaseModel):
 
 #word will be string user passes in from stdin
 #must be converted from a string word to a list of letters
-class Word(BaseModel): #! class is self contained; it doesn't know about where it's being called
+class Word(BaseModel): #! classes are self contained; it doesn't know about where it's being called
     """Will generate a Word class object"""
     word: List[Letter] = Field([], min_length=5, max_length=5) #TODO is in vocabulary and in ascii chars   
                                                                     #TODO:maybe move ascii check move to letters
     @classmethod
-    def create(cls, word_str: str) -> 'Word': 
+    def create(cls, word_str: str) -> Self: 
+        if type(word_str) != str or word_str is None: #! was using to debug hypothesis but no luck
+            raise TypeError('input must be a string')
         return cls(word = [Letter(name=ch) for ch in word_str])
 
+    @field_validator('word')
+    def validate_characters_ASCIII(self, player_guess: Self) -> bool:
+        for letter in player_guess.word:
+            if not 'a' <= letter.name <= 'z': 
+                raise ValueError(f"Letter '{letter.name}' is not a lowercase ASCII character (a-z)")
+            
     #validate user_guess length and present in dictionary and each char is ASCII a-z
     def validate_user_guess(self, user_guess: str) -> bool:
         #will use validate_guss  in dict and validate length
         pass
     
-    def validate_guess_in_word_list(self, user_guess: Self) -> bool:
-        #check if word in dictionary of words
-        pass
+    def validate_guess_in_libary(self, player_guess: Self, library_list: List) -> bool:
+        return player_guess in library_list
 
     def validate_guess_length(self, user_guess: Self) -> bool:
         #check if word in dictionary of words
         pass
     
     # check all chars of Word object are a-z
-    def validate_characters_ASCIII(self, user_guess: Self) -> bool:
-        pass
     
     def compare_against_secret_word(self, user_guess: Self) -> bool:
         pass
@@ -139,23 +144,20 @@ def main():
     name: str = input("Please enter your name: ")
     player: Player = Player(name=name, number_of_guesses=MAX_USER_GUESSES)
     game: Game = Game(player=player)
-    vocabulary_list: list = game.convert_vocabulary_to_list(TEXT_FILE)
-    secrect_word: str = game.get_secrect_word(vocabulary_list, len(vocabulary_list))
+    library_list: list = game.convert_vocabulary_to_list(TEXT_FILE)
+    secrect_word: str = game.get_secrect_word(library_list, len(library_list))
     
     #iterate over MAX_USER_GUESSES - GAME LOOP
     for guess in range(MAX_USER_GUESSES):
         #user enters guess
-        player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))     
-        print(player_guess)       
-            # convert to word object -> create()
-            # validate #TODO: ADD PYDANTIC VALIDATION
-                # five letters long #//TODO: ADD PYDANTIC VALIDATION
-                    # if not return i/o length is too long or short #TODO: COMBINE LENGTH AND ASCII (gtt, lt 'a' 'z') into pydantic field
-                # each letter is an ASCII character a-z
-                    # if not, i/o indicating length is too long or short #TODO: ADD PYDANTIC VALIDATION
-                # validate if guess in list of vocabulary list
+        player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))          
+        player_guess = Word(guess) #passed to create() as a class method
+        player_guess_in_library: bool = player_guess.validate_guess_in_libary(player_guess, library_list)
+        if not player_guess_in_library:
+            
         # compare against secret word 
             #if correct -> i/o congratulations
+        
         #score word
             #only focus is to determine position and correct letters and update information
 

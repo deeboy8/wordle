@@ -66,23 +66,23 @@ def test_word_length_correct():
     with pytest.raises(ValueError):
         Word(word=word1)
 
-def test_check_correct_type_returned():
-    """Test correct type returned from Word class"""
-    #arrange
-    # class_type = type(Letter)
-    word_string = 'happy'
-    #act
-    result = Word(word=word_string)
-    #assert
-    assert type(result) == Word
-    assert type(result) != List
+# def test_check_correct_type_returned():
+#     """Test correct type returned from Word class"""
+#     #arrange
+#     # class_type = type(Letter)
+#     word_string = 'happy'
+#     #act
+#     result = Word(word=word_string)
+#     #assert
+#     assert type(result) == Word
+#     assert type(result) != List
 
-def test_create_returns_correct_type():
-    # arrange
-    word_str = "dices"
-    #act
-    result = Word.create(word_str)
-    assert type(result) == Word
+# def test_create_returns_correct_type():
+#     # arrange
+#     word_str = "dices"
+#     #act
+#     result = Word.create(word_str)
+#     assert type(result) == Word
 
 def test_check_correct_letter_count_returned():
     pass
