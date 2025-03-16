@@ -30,12 +30,10 @@ class Word(BaseModel): #! classes are self contained; it doesn't know about wher
     word: List[Letter] = Field([], min_length=5, max_length=5) #TODO is in vocabulary and in ascii chars   
                                                                     #TODO:maybe move ascii check move to letters
     @classmethod
-    def create(cls, word_str: str) -> Self: 
+    def create(cls, word_str: str) -> Self: #TODO: add validation within libary as part of contructor method create()
         if not all('a'<= ch <= 'z' for ch in word_str):
             raise ValueError("all letters must be lowercase ASCII characters (a-z)")
         return cls(word = [Letter(name=ch) for ch in word_str])
-    
-    
     
     def update_color_state(self, ch: str, color: str) -> bool:
         # if color is green, yellow, grey:
@@ -135,15 +133,16 @@ def main():
     name: str = input("Please enter your name: ")
     player: Player = Player(name=name, number_of_guesses=MAX_USER_GUESSES)
     game: Game = Game(player=player)
-    library_list: list = game.convert_vocabulary_to_list(TEXT_FILE)
-    secrect_word: str = game.get_secrect_word(library_list, len(library_list))
+    library_list: list = game.convert_vocabulary_to_list(TEXT_FILE) #TODO: change name to library F2
+        #TODO: create library_list and secrect_word in game object directly as part of contructor
+    secrect_word: str = game.get_secrect_word(library_list, len(library_list)) #TODO: change name to correct spelling of secrect F2
     
     #iterate over MAX_USER_GUESSES - GAME LOOP
     for guess in range(MAX_USER_GUESSES):
-        player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))   
+        player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))
         # Convert players guess into a Word object       
-        player_guess: Word = Word(guess)
-        player_guess_in_library: bool = game.validate_guess_in_libary(player_guess, library_list)
+        player_guess: Word = Word(player_guess) #! if going to create an object, upon intializtion it should be guranteed to be validate
+        player_guess_in_library: bool = game.validate_guess_in_libary(player_guess, library_list) #TODO: add directly to field() of pydantic 
         if not player_guess_in_library:
             print(f"word: {player_guess} is not valid.")
             print(f"Please chooseanother word.")
