@@ -2,7 +2,7 @@
 from typing import List
 from typing_extensions import Self
 from enum import Enum
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field, model_validator
 import random
 
 """!?//todo*"""
@@ -25,7 +25,7 @@ class Letter(BaseModel):
 
 #word will be string user passes in from stdin
 #must be converted from a string word to a list of letters
-class Word(BaseModel): #! classes are self contained; it doesn't know about where it's being called
+class Word(BaseModel): 
     """Will generate a Word class object"""
     word: List[Letter] = Field([], min_length=5, max_length=5) #TODO is in vocabulary and in ascii chars   
                                                                     #TODO:maybe move ascii check move to letters
@@ -90,29 +90,42 @@ class Player(BaseModel):
         return f"name is: {name} and you have {number_of_guess} remaining"
 
 class Game(BaseModel): 
-    board: List[List] = Board()
+    board: Board = Field(default_factory=Board)
     player: Player
     # alphabet: Alphabet = Alphabet()
+    vocabulary: List[str] = Field(default_factory=list)
+    secret_word: str = ""
 
-    #import file of words and return a list 
-    def convert_word_library_to_list(self, file_name: str) -> List:
-        if not file_name:
-            raise ValueError('empty string')
+    @model_validator(mode='before')
+    @classmethod
+    def load_vocabulary_and_secret_word(cls, data):
+        # Handle both dict and object inputs
+        if isinstance(data, dict):
+            # Load vocabulary if not provided
+            if 'vocabulary' not in data or not data['vocabulary']:
+                data['vocabulary'] = cls._load_vocabulary()
+            
+            # Set secret word if not provided
+            if 'secret_word' not in data or not data['secret_word']:
+                if not data['vocabulary']:
+                    raise ValueError("Vocabulary is empty, cannot select a secret word")
+                data['secret_word'] = random.choice(data['vocabulary'])
+        
+        return data
+
+    @staticmethod
+    def _load_vocabulary(file_name: str = TEXT_FILE) -> List[str]:
+        """Load vocabulary from file into a list"""
         try:
             with open(file_name, "r") as file:
-                return sorted([line.strip() for line in file]) #TODO: determine if this is acceptable if file not found
+                return sorted([line.strip() for line in file if len(line.strip()) == MAX_WORD_LEN])
         except FileNotFoundError as fnf_error:
-            print(fnf_error)
+            print(f"Vocabulary file not found: {fnf_error}")
+            return []  # Return empty list if file not found    
         
     def validate_guess_in_libary(self, player_guess: Self, library_list: List) -> bool:
         return player_guess in library_list
     
-    #randomly choose a secrect word and return chosen word
-    def get_secrect_word(self, list_of_words: list, file_len: int):
-        random_int: int = random.randint(1, file_len)
-        return list_of_words[random_int]
-    
-
     # Normalize player guess by making lowercase and removing any whitespace
     def normalize_player_guess(self, player_guess: str) -> str:
         return "".join(player_guess.lower().split())
@@ -130,18 +143,15 @@ class Game(BaseModel):
 
 def main():
     print(f"Welcome to Wordle!")
-    name: str = input("Please enter your name: ")
+    name: str = input("Please enter your name: ") or 'Demitrus'
     player: Player = Player(name=name, number_of_guesses=MAX_USER_GUESSES)
     game: Game = Game(player=player)
-    library_list: list = game.convert_vocabulary_to_list(TEXT_FILE) #TODO: change name to library F2
-        #TODO: create library_list and secrect_word in game object directly as part of contructor
-    secrect_word: str = game.get_secrect_word(library_list, len(library_list)) #TODO: change name to correct spelling of secrect F2
     
     #iterate over MAX_USER_GUESSES - GAME LOOP
     for guess in range(MAX_USER_GUESSES):
         player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))
         # Convert players guess into a Word object       
-        player_guess: Word = Word(player_guess) #! if going to create an object, upon intializtion it should be guranteed to be validate
+        player_guess: Word = Word(player_guess) #! if going to create an object, upon intializtion it should be guranteed to be validated -> add validation in library as part of object creation 
         player_guess_in_library: bool = game.validate_guess_in_libary(player_guess, library_list) #TODO: add directly to field() of pydantic 
         if not player_guess_in_library:
             print(f"word: {player_guess} is not valid.")
@@ -150,12 +160,12 @@ def main():
             #if correct -> i/o congratulations
         comparison: bool = game.compare_against_secret_word(player_guess, secrect_word)
 
-        #score word
-            #only focus is to determine position and correct letters and update information
+        # score word
+        #     only focus is to determine position and correct letters and update information
 
-            #TODO: must say to game -> board to UPDATE yourself aka pushing responsibility down to lowest point 
+        #     TODO: must say to game -> board to UPDATE yourself aka pushing responsibility down to lowest point 
         # update board
-            #use game object to update Player (update details), Board (update letters) 
+        #     use game object to update Player (update details), Board (update letters) 
 
 #idea: create a dict in score word where letter is key and value is letter state information
     #change letter_state in word object
