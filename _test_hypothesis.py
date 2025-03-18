@@ -1,5 +1,5 @@
 # import pytest
-from test_hypothesis import given, text 
+from _test_hypothesis import given, text 
 from wordle import Letter, Word, LetterState
 
 ################ Word Class ############
