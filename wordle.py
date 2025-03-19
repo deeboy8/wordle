@@ -30,10 +30,20 @@ class Word(BaseModel):
     word: List[Letter] = Field([], min_length=5, max_length=5) #TODO is in vocabulary and in ascii chars   
                                                                     #TODO:maybe move ascii check move to letters
     @classmethod
-    def create(cls, word_str: str) -> Self: #TODO: add validation within libary as part of contructor method create()
+    def create(cls, word_str: str, vocabulary: List[str]) -> Self: #TODO: add validation within libary as part of contructor method create()
         if not all('a'<= ch <= 'z' for ch in word_str):
             raise ValueError("all letters must be lowercase ASCII characters (a-z)")
+        
+        if vocabulary is not None and word_str not in vocabulary:
+            raise ValueError(f"{word_str} not in the vocabulary")
+        
         return cls(word = [Letter(name=ch) for ch in word_str])
+    
+    def compare_against_secret_word(self, player_guess: Self, secret_word) -> bool:
+        for ch, i in player_guess.word, range(len(secret_word)):
+            if not str(ch.name) == secret_word[i]:
+                return False
+        return True
     
     def update_color_state(self, ch: str, color: str) -> bool:
         # if color is green, yellow, grey:
@@ -110,7 +120,7 @@ class Game(BaseModel):
                 if not data['vocabulary']:
                     raise ValueError("Vocabulary is empty, cannot select a secret word")
                 data['secret_word'] = random.choice(data['vocabulary'])
-        
+                
         return data
 
     @staticmethod
@@ -130,12 +140,6 @@ class Game(BaseModel):
     def normalize_player_guess(self, player_guess: str) -> str:
         return "".join(player_guess.lower().split())
 
-    def compare_against_secret_word(self, player_guess: Word, secret_word) -> bool:
-        for ch, i in player_guess.word, range(len(secret_word)):
-            if not str(ch.name) == secret_word[i]:
-                return False
-        return True
-
 
     #udpate board, to update game, Word and Player objects
     def update(self):
@@ -147,18 +151,19 @@ def main():
     player: Player = Player(name=name, number_of_guesses=MAX_USER_GUESSES)
     game: Game = Game(player=player)
     
+
     #iterate over MAX_USER_GUESSES - GAME LOOP
     for guess in range(MAX_USER_GUESSES):
         player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))
         # Convert players guess into a Word object       
-        player_guess: Word = Word(player_guess) #! if going to create an object, upon intializtion it should be guranteed to be validated -> add validation in library as part of object creation 
-        player_guess_in_library: bool = game.validate_guess_in_libary(player_guess, library_list) #TODO: add directly to field() of pydantic 
-        if not player_guess_in_library:
-            print(f"word: {player_guess} is not valid.")
-            print(f"Please chooseanother word.")
+        player_guess: Word = Word.create(player_guess, game.vocabulary) 
+        # player_guess_in_library: bool = game.validate_guess_in_libary(player_guess, library_list) #TODO: add directly to field() of pydantic 
+        # if not player_guess_in_library:
+        #     print(f"word: {player_guess} is not valid.")
+        #     print(f"Please chooseanother word.")
         # compare against secret word 
             #if correct -> i/o congratulations
-        comparison: bool = game.compare_against_secret_word(player_guess, secrect_word)
+        # comparison: bool = game.compare_against_secret_word(player_guess, secrect_word)
 
         # score word
         #     only focus is to determine position and correct letters and update information
