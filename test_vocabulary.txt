@@ -2,4 +2,8 @@ write
 spurt
 power
 decay
+<<<<<<< HEAD
 files	
+=======
+files
+>>>>>>> 75e1b3c67da4291c4f077f46f9dc4e2a4f3be208
