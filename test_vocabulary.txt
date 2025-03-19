@@ -1,0 +1,5 @@
+write
+spurt
+power
+decay
+files	
