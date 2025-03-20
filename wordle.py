@@ -23,66 +23,12 @@ class Letter(BaseModel):
     name: str = Field(max_length=1)
     letter_state: LetterState = Field(default=LetterState.unselected) #TODO pydantic validation to ensure LetterState is accurate and not returned to unselected
 
-#word will be string user passes in from stdin
-#must be converted from a string word to a list of letters
-class Word(BaseModel): 
-    """Will generate a Word class object"""
-    word: List[Letter] = Field([], min_length=5, max_length=5) #TODO is in vocabulary and in ascii chars   
-                                                                    #TODO:maybe move ascii check move to letters
-    @classmethod
-    def create(cls, word_str: str, vocabulary: List[str]) -> Self: #TODO: add validation within libary as part of contructor method create()
-        if not all('a'<= ch <= 'z' for ch in word_str):
-            raise ValueError("all letters must be lowercase ASCII characters (a-z)")
-        
-        if vocabulary is not None and word_str not in vocabulary:
-            raise ValueError(f"{word_str} not in the vocabulary")
-        
-        return cls(word = [Letter(name=ch) for ch in word_str])
-    
-    def compare_against_secret_word(self, player_guess: Self, secret_word) -> bool:
-        for ch, i in player_guess.word, range(len(secret_word)):
-            if not str(ch.name) == secret_word[i]:
-                return False
-        return True
-    
-    def update_color_state(self, ch: str, color: str) -> bool:
-        # if color is green, yellow, grey:
-            # change ch.letterstate to color -> USE THAT THING THAT STARTS WITH A 'C' AND GIVES OPTIONS TO CHOOSE        
-        pass
+# #create a Board as a list and appends each user word 
+# class Board(BaseModel):
+#     board: List[Word] = Field([], max_length=MAX_USER_GUESSES)
 
-    def remove_word_from_list(self, user_guess: Self) -> bool:
-        # create list of letters to form a string
-        # remove string from list 
-        pass 
-
-    def is_letter_in_secrect_word(self, ch: str, secrect_word: str) -> bool:
-        pass
-
-    def is_letter_in_correct_index(self, ch_index: int, secrect_word: str) -> bool:
-        pass
-
-    #will only return bool data and update letter_state changes
-    #board will be updated by Game obj
-    def score_user_guess(self, secret_word: str, user_guess: Self, secrect_word: str) -> None:
-        #for loop iterating over each letter
-            # need to check if ch in word (iteration) and equivalent to the same index position
-            # therefore need two fx to return bools
-                # if both fx:
-                    # update state with green
-                # elif letter_found and index_pos is False:
-                    # change state to yellow
-                # else:
-                    #1. change state color to grey
-                    #2. remove all words from list containing that character
-                    #return false
-        pass
-
-#create a Board as a list and appends each user word 
-class Board(BaseModel):
-    board: List[Word] = Field([], max_length=MAX_USER_GUESSES)
-
-    def insert_user_guess(self, user_guess: Word) -> list:
-        return self.board.append(user_guess)
+#     def insert_user_guess(self, user_guess: Word) -> list:
+#         return self.board.append(user_guess)
 
 #! hard mode will use this class
 # class Alphabet(BaseModel): 
@@ -98,9 +44,9 @@ class Player(BaseModel):
 
     def get_player_name(self, name, number_of_guess):
         return f"name is: {name} and you have {number_of_guess} remaining"
-
+    
 class Game(BaseModel): 
-    board: Board = Field(default_factory=Board)
+    # board: Board = Field(default_factory=Board)
     player: Player
     # alphabet: Alphabet = Alphabet()
     vocabulary: List[str] = Field(default_factory=list)
@@ -131,7 +77,7 @@ class Game(BaseModel):
                 return sorted([line.strip() for line in file if len(line.strip()) == MAX_WORD_LEN])
         except FileNotFoundError as fnf_error:
             print(f"Vocabulary file not found: {fnf_error}")
-            return []  # Return empty list if file not found    
+            # return []  # Return empty list if file not found    
         
     def validate_guess_in_libary(self, player_guess: Self, library_list: List) -> bool:
         return player_guess in library_list
@@ -144,6 +90,74 @@ class Game(BaseModel):
     #udpate board, to update game, Word and Player objects
     def update(self):
         pass
+    
+    def check_char_index_position(self, user_guess: Word, secrect_word: str):
+        pass
+
+    #will only return bool data and update letter_state changes
+    #board will be updated by Game obj
+    def score_user_guess(self, user_guess: Self, secrect_word: str) -> None:
+        #for loop iterating over each letter
+        for ch in range(len(user_guess)):
+            # need to check if ch in user_guess and secrect word are same index position
+            result: bool = check_char_index_position(user_guess, secrect_word)
+            # therefore need two fx to return bools
+                # if both fx:
+                    # update state with green
+                # elif letter_found and index_pos is False:
+                    # change state to yellow
+                # else:
+                    #1. change state color to grey
+                    #2. remove all words from list containing that character
+                    #return false
+        pass
+
+    def is_secrect_word(self, word: "Word") -> bool: #! forward referencing
+
+
+#word will be string user passes in from stdin
+#must be converted from a string word to a list of letters
+class Word(BaseModel): 
+    """Will generate a Word class object"""
+    word: List[Letter] = Field([], min_length=5, max_length=5) #TODO is in vocabulary and in ascii chars   
+                                                                    #TODO:maybe move ascii check move to letters
+    @classmethod
+    def create(cls, word_str: str, vocabulary: List[str]) -> Self | bool: #TODO: add validation within libary as part of contructor method create()
+        if not all('a'<= ch <= 'z' for ch in word_str):
+            raise ValueError("all letters must be lowercase ASCII characters (a-z)")
+        
+        if vocabulary is not None and word_str not in vocabulary:
+            # raise ValueError(f"{word_str} not in the vocabulary")
+            return False
+        
+        return cls(word = [Letter(name=ch) for ch in word_str])
+    
+    ##createe fx str_comp  str argument, game.secrect word for secret word and pass to fx on word object
+    def str_eq(self, s: str) -> bool:
+        #comparing s against word on line 119
+        pass 
+    
+    def compare_against_secret_word(self) -> bool: #, player_guess: Self) -> bool: 
+        for ch, i in self.word, range(len(game.secret_word)):
+            if not str(ch.name) == Game.secret_word[i]:
+                return False 
+        return True
+    
+    def update_color_state(self, ch: str, color: str) -> bool:
+        # if color is green, yellow, grey:
+            # change ch.letterstate to color -> USE THAT THING THAT STARTS WITH A 'C' AND GIVES OPTIONS TO CHOOSE        
+        pass
+
+    def remove_word_from_list(self, user_guess: Self) -> bool:
+        # create list of letters to form a string
+        # remove string from list 
+        pass 
+
+    def is_letter_in_secrect_word(self, ch: str, secrect_word: str) -> bool:
+        pass
+
+    def is_letter_in_correct_index(self, ch_index: int, secrect_word: str) -> bool:
+        pass
 
 def main():
     print(f"Welcome to Wordle!")
@@ -151,19 +165,19 @@ def main():
     player: Player = Player(name=name, number_of_guesses=MAX_USER_GUESSES)
     game: Game = Game(player=player)
     
-
     #iterate over MAX_USER_GUESSES - GAME LOOP
     for guess in range(MAX_USER_GUESSES):
         player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))
         # Convert players guess into a Word object       
         player_guess: Word = Word.create(player_guess, game.vocabulary) 
-        # player_guess_in_library: bool = game.validate_guess_in_libary(player_guess, library_list) #TODO: add directly to field() of pydantic 
-        # if not player_guess_in_library:
-        #     print(f"word: {player_guess} is not valid.")
-        #     print(f"Please chooseanother word.")
+        if not player_guess and guess < MAX_USER_GUESSES:
+            continue
+        check_player_guess: bool = player_guess.compare_against_secret_word() #player_guess)
+        if check_player_guess:
+            print(f"Congratulations, {game.player}. You guessed the secret word.")
+        else:
         # compare against secret word 
-            #if correct -> i/o congratulations
-        # comparison: bool = game.compare_against_secret_word(player_guess, secrect_word)
+            comparison: bool = game.score_user_guess(player_guess, game.secret_word)
 
         # score word
         #     only focus is to determine position and correct letters and update information
