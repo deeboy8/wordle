@@ -5,7 +5,10 @@ from enum import Enum
 from pydantic import BaseModel, Field, model_validator
 import random
 
-"""!?//todo*"""
+"""!?//todo*
+
+The Word class has a word attribute which is a list of Letter objects. Each Letter object has a name attribute that contains the actual character. You can iterate through this list using a standard for loop or with enumerate() if you need the index position as well.
+"""
 
 MAX_USER_GUESSES = 6
 MAX_WORD_LEN = 5
@@ -91,29 +94,36 @@ class Game(BaseModel):
     def update(self):
         pass
     
-    def check_char_index_position(self, user_guess: Word, secrect_word: str):
-        pass
+    # def check_char_index_position(self, user_guess: Word, secrect_word: str):
+    #     pass
 
     #will only return bool data and update letter_state changes
     #board will be updated by Game obj
     def score_user_guess(self, user_guess: Self, secrect_word: str) -> None:
-        #for loop iterating over each letter
-        for ch in range(len(user_guess)):
-            # need to check if ch in user_guess and secrect word are same index position
-            result: bool = check_char_index_position(user_guess, secrect_word)
-            # therefore need two fx to return bools
-                # if both fx:
-                    # update state with green
-                # elif letter_found and index_pos is False:
-                    # change state to yellow
-                # else:
-                    #1. change state color to grey
-                    #2. remove all words from list containing that character
-                    #return false
+        # #for loop iterating over each letter
+        # for ch in range(len(user_guess)):
+        #     # need to check if ch in user_guess and secrect word are same index position
+        #     result: bool = check_char_index_position(user_guess, secrect_word)
+        #     # therefore need two fx to return bools
+        #         # if both fx:
+        #             # update state with green
+        #         # elif letter_found and index_pos is False:
+        #             # change state to yellow
+        #         # else:
+        #             #1. change state color to grey
+        #             #2. remove all words from list containing that character
+        #             #return false
         pass
 
-    def is_secrect_word(self, word: "Word") -> bool: #! forward referencing
-
+    def is_secrect_word(self, player_guess: "Word") -> bool: #! forward referencing
+        for ch, i in player_guess.word, range(len(self.secret_word)):
+            if not str(ch.name) == self.secret_word[i]:
+                return False 
+        return True
+        # for i, letter in enumerate(self.word): #! correct versin per cody
+        # if letter.name != secret_word[i]:
+        #     return False
+        # return True
 
 #word will be string user passes in from stdin
 #must be converted from a string word to a list of letters
@@ -170,14 +180,15 @@ def main():
         player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))
         # Convert players guess into a Word object       
         player_guess: Word = Word.create(player_guess, game.vocabulary) 
-        if not player_guess and guess < MAX_USER_GUESSES:
-            continue
-        check_player_guess: bool = player_guess.compare_against_secret_word() #player_guess)
-        if check_player_guess:
-            print(f"Congratulations, {game.player}. You guessed the secret word.")
-        else:
-        # compare against secret word 
-            comparison: bool = game.score_user_guess(player_guess, game.secret_word)
+        print(player_guess.word[0].name)
+        # if not player_guess and guess < MAX_USER_GUESSES:
+        #     continue
+        # check_player_guess: bool = game.is_secrect_word(player_guess)
+        # if check_player_guess:
+        #     print(f"Congratulations, {game.player}. You guessed the secret word.")
+        # else:
+        # # compare against secret word 
+        #     comparison: bool = game.score_user_guess(player_guess, game.secret_word)
 
         # score word
         #     only focus is to determine position and correct letters and update information
