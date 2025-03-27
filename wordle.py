@@ -1,5 +1,6 @@
 
-from typing import List
+from typing import List, Dict
+from collections import defaultdict
 from typing_extensions import Self
 from enum import Enum
 from pydantic import BaseModel, Field, model_validator
@@ -8,6 +9,8 @@ import random
 """!?//todo*
 
 The Word class has a word attribute which is a list of Letter objects. Each Letter object has a name attribute that contains the actual character. You can iterate through this list using a standard for loop or with enumerate() if you need the index position as well.
+# print(player_guess.word[0].name)
+
 """
 
 MAX_USER_GUESSES = 6
@@ -81,9 +84,6 @@ class Game(BaseModel):
         except FileNotFoundError as fnf_error:
             print(f"Vocabulary file not found: {fnf_error}")
             # return []  # Return empty list if file not found    
-        
-    def validate_guess_in_libary(self, player_guess: Self, library_list: List) -> bool:
-        return player_guess in library_list
     
     # Normalize player guess by making lowercase and removing any whitespace
     def normalize_player_guess(self, player_guess: str) -> str:
@@ -93,26 +93,25 @@ class Game(BaseModel):
     #udpate board, to update game, Word and Player objects
     def update(self):
         pass
-    
-    # def check_char_index_position(self, user_guess: Word, secrect_word: str):
-    #     pass
+
+    def get_indices(self, ch: str, secrect_word: str) -> List:
+        
 
     #will only return bool data and update letter_state changes
     #board will be updated by Game obj
-    def score_user_guess(self, user_guess: Self, secrect_word: str) -> None:
-        # #for loop iterating over each letter
-        # for ch in range(len(user_guess)):
-        #     # need to check if ch in user_guess and secrect word are same index position
-        #     result: bool = check_char_index_position(user_guess, secrect_word)
-        #     # therefore need two fx to return bools
-        #         # if both fx:
-        #             # update state with green
-        #         # elif letter_found and index_pos is False:
-        #             # change state to yellow
-        #         # else:
-        #             #1. change state color to grey
-        #             #2. remove all words from list containing that character
-        #             #return false
+    def score_user_guess(self, player_guess: "Word", secrect_word: str) -> None:
+        dict_of_indices: Dict[int] = defaultdict(list)
+        for i in range(len(player_guess)):
+            # # lambda fx (lambda ch in secrect_word: for ch in player_guess)
+            ch_in_secrect_word: bool = lambda ch: ch in secrect_word
+            if not ch_in_secrect_word:
+                break
+            dict_of_indices[player_guess.word[i].name] = self.get_indices(player_guess.word[i].name, secrect_word)
+            #if yes, fx: find_ch_positions -> loops over secrect word identifying positions ch is in secret_word
+                # create a default dict that holds a list of possible indexes
+        # if false -> break from loop
+
+
         pass
 
     def is_secrect_word(self, player_guess: "Word") -> bool: #! forward referencing
@@ -147,11 +146,11 @@ class Word(BaseModel):
         #comparing s against word on line 119
         pass 
     
-    def compare_against_secret_word(self) -> bool: #, player_guess: Self) -> bool: 
-        for ch, i in self.word, range(len(game.secret_word)):
-            if not str(ch.name) == Game.secret_word[i]:
-                return False 
-        return True
+    # def compare_against_secret_word(self) -> bool: #, player_guess: Self) -> bool: 
+    #     for ch, i in self.word, range(len(game.secret_word)):
+    #         if not str(ch.name) == Game.secret_word[i]:
+    #             return False 
+    #     return True
     
     def update_color_state(self, ch: str, color: str) -> bool:
         # if color is green, yellow, grey:
@@ -180,17 +179,13 @@ def main():
         player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))
         # Convert players guess into a Word object       
         player_guess: Word = Word.create(player_guess, game.vocabulary) 
-        print(player_guess.word[0].name)
-        # if not player_guess and guess < MAX_USER_GUESSES:
-        #     continue
-        # check_player_guess: bool = game.is_secrect_word(player_guess)
-        # if check_player_guess:
-        #     print(f"Congratulations, {game.player}. You guessed the secret word.")
-        # else:
-        # # compare against secret word 
-        #     comparison: bool = game.score_user_guess(player_guess, game.secret_word)
-
-        # score word
+        if not player_guess and guess < MAX_USER_GUESSES:
+            continue
+        check_player_guess: bool = game.is_secrect_word(player_guess)
+        if check_player_guess:
+            print(f"Congratulations, {game.player}. You guessed the secret word: {player_guess}.")
+        else:
+            game.score_player_guess(player_guess, game.secret_word)
         #     only focus is to determine position and correct letters and update information
 
         #     TODO: must say to game -> board to UPDATE yourself aka pushing responsibility down to lowest point 
