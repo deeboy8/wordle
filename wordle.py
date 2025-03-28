@@ -57,6 +57,7 @@ class Game(BaseModel):
     # alphabet: Alphabet = Alphabet()
     vocabulary: List[str] = Field(default_factory=list)
     secret_word: str = ""
+    player_guesses: int = 0
 
     @model_validator(mode='before')
     @classmethod
@@ -93,63 +94,85 @@ class Game(BaseModel):
     #udpate board, to update game, Word and Player objects
     def update_game(self, dict: Dict[str, Dict[str, Any]]) -> None:
         # loop over dictionary making comparison between if in word and correct position to determine color of letter_state
+        # check for count of letter preent in secrect_word
+        # relationships
+            # if in_word == true and in_position true ===> GREEN
+            # if in_word == true and in_position false ===> YELLOW 
+            # if in word == false break
+        self.player_guesses += 1
+        # update alphabet
         pass
-    
-    # Update dictionary detailing if each character from secret word is in the secret word and if in the correct position
-    def update_dict(self, ch: str, in_secrect_word: bool, in_correct_position: bool, idx: int) -> Dict:
-        dict: Dict[str, Dict[str, Any]] = {}
-        if ch not in dict:
-            dict[ch] = {
+
+    # # Update dictionary detailing if each character from secret word is in the secret word and if in the correct position
+    #TODO: replace ANY with ENUMS 
+    def update_dict(self, letter_info_dict: Dict[str, Dict[str, Any]], ch: str, in_secrect_word: bool, in_correct_position: bool, idx: int,
+                    count: int) -> Dict:
+        if ch not in letter_info_dict:
+            letter_info_dict[ch] = {
                 'in_word': in_secrect_word,
                 'in_position': in_correct_position,
-                'index': idx
+                'index': idx,
+                'count': count
             } 
         else:
-            dict[ch]['in_word'] = in_secrect_word
-            dict[ch]['in_position'] = in_correct_position
-            dict[ch]['index'] = idx 
+            letter_info_dict[ch]['in_word'] = in_secrect_word
+            letter_info_dict[ch]['in_position'] = in_correct_position
+            letter_info_dict[ch]['index'] = idx 
         
         return dict
-    
-
 
     #will only return bool data and update letter_state changes
     #board will be updated by Game obj
-    def score_user_guess(self, player_guess: "Word", secrect_word: str) -> None:
-        # dict: Dict[Dict[int, bool]] = defaultdict(dict)
-        for i in range(len(player_guess.word[i].name)):
-            #check if char in secrect word
-            in_secrect_word: bool = lambda ch: ch in secrect_word
-            # if not, break out of loop and move to next char
+    def score_player_guess(self, player_guess: "Word", secret_word: str) -> None: #TODO: change secrect_wrod to self (remove from parameter)
+        # create default dict with standard keys and intial values
+        letter_info_dict: Dict[Dict[bool, Any]] = defaultdict(lambda: {'in_word': False, 'in_position': False, 'index': 0, 'count': 0})
+        for i in range(len(player_guess.word)):
+            # check if char in secrect word
+            in_secrect_word: bool = lambda ch: ch in secret_word
             if not in_secrect_word: break
+            # count occurrences of char in secret word
+            count_letter_occurrences: List = lambda ch, secret_word: [i for i, letter in enumerate(secret_word) if letter == ch]  
+            # print(count_letter_occurrences)
             # check if char in correct idx in relation to secrect word 
-            in_correct_position: bool = lambda ch: i < len(secrect_word) and player_guess[i] == secrect_word[i]
+            in_correct_position: bool = lambda ch: i < len(secret_word) and player_guess[i] == secret_word[i]
             # update dictionary
-            update_dict: Dict[str, Dict[str, Any]] = update_dict(player_guess.word[i].name, in_secrect_word, in_correct_position, i)
-            # update game instance
-            self.update_game(dict)
+            updated_dict: Dict[str, Dict[bool, Any]] = self.update_dict(letter_info_dict, player_guess.word[i].name, in_secrect_word, in_correct_position, i, count_letter_occurrences)
+            
+        self.update_game(updated_dict)
 
-
-        pass
-
-    def is_secrect_word(self, player_guess: "Word") -> bool: #! forward referencing
-        for ch, i in player_guess.word, range(len(self.secret_word)):
-            if not str(ch.name) == self.secret_word[i]:
-                return False 
+        
+        # # Update letter state based on the information
+        # if in_position:
+        #     letter.letter_state = LetterState.greenin_correct_position,
+        # elif in_secret:
+        #     letter.letter_state = LetterState.yellow
+        # else:
+        #     letter.letter_state = LetterState.grey
+    
+    def is_secret_word(self, player_guess: "Word") -> bool: #! change word to __str__
+        for i, letter in enumerate(player_guess.word):
+            if letter.name != self.secret_word[i]:
+                return False
         return True
-        # for i, letter in enumerate(self.word): #! correct versin per cody
-        # if letter.name != secret_word[i]:
-        #     return False
-        # return True
 
 #word will be string user passes in from stdin
 #must be converted from a string word to a list of letters
 class Word(BaseModel): 
     """Will generate a Word class object"""
-    word: List[Letter] = Field([], min_length=5, max_length=5) #TODO is in vocabulary and in ascii chars   
-                                                                    #TODO:maybe move ascii check move to letters
+    word: List[Letter] = Field([], min_length=5, max_length=5) 
+
+    # def __str__(self) -> str:
+    #     word_as_str: str = ""
+    #     # for ch in range(len(self.word[i])):
+    #     #     return "".join(self.
+    #     for letter in self.word:
+    #         word_as_str.append(letter.name)
+    #         # "".join(word_as_str.letter) #TODO: FINISH!
+        
+
+
     @classmethod
-    def create(cls, word_str: str, vocabulary: List[str]) -> Self | bool: #TODO: add validation within libary as part of contructor method create()
+    def create(cls, word_str: str, vocabulary: List[str]) -> Self | bool: 
         if not all('a'<= ch <= 'z' for ch in word_str):
             raise ValueError("all letters must be lowercase ASCII characters (a-z)")
         
@@ -197,9 +220,10 @@ def main():
         player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))
         # Convert players guess into a Word object       
         player_guess: Word = Word.create(player_guess, game.vocabulary) 
+        print(player_guess)
         if not player_guess and guess < MAX_USER_GUESSES:
             continue
-        check_player_guess: bool = game.is_secrect_word(player_guess)
+        check_player_guess: bool = game.is_secret_word(player_guess)
         if check_player_guess:
             print(f"Congratulations, {game.player}. You guessed the secret word: {player_guess}.")
         else:
