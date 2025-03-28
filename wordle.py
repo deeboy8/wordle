@@ -1,5 +1,5 @@
 
-from typing import List, Dict
+from typing import List, Dict, Any
 from collections import defaultdict
 from typing_extensions import Self
 from enum import Enum
@@ -91,25 +91,43 @@ class Game(BaseModel):
 
 
     #udpate board, to update game, Word and Player objects
-    def update(self):
+    def update_game(self, dict: Dict[str, Dict[str, Any]]) -> None:
+        # loop over dictionary making comparison between if in word and correct position to determine color of letter_state
         pass
-
-    def get_indices(self, ch: str, secrect_word: str) -> List:
+    
+    # Update dictionary detailing if each character from secret word is in the secret word and if in the correct position
+    def update_dict(self, ch: str, in_secrect_word: bool, in_correct_position: bool, idx: int) -> Dict:
+        dict: Dict[str, Dict[str, Any]] = {}
+        if ch not in dict:
+            dict[ch] = {
+                'in_word': in_secrect_word,
+                'in_position': in_correct_position,
+                'index': idx
+            } 
+        else:
+            dict[ch]['in_word'] = in_secrect_word
+            dict[ch]['in_position'] = in_correct_position
+            dict[ch]['index'] = idx 
         
+        return dict
+    
+
 
     #will only return bool data and update letter_state changes
     #board will be updated by Game obj
     def score_user_guess(self, player_guess: "Word", secrect_word: str) -> None:
-        dict_of_indices: Dict[int] = defaultdict(list)
-        for i in range(len(player_guess)):
-            # # lambda fx (lambda ch in secrect_word: for ch in player_guess)
-            ch_in_secrect_word: bool = lambda ch: ch in secrect_word
-            if not ch_in_secrect_word:
-                break
-            dict_of_indices[player_guess.word[i].name] = self.get_indices(player_guess.word[i].name, secrect_word)
-            #if yes, fx: find_ch_positions -> loops over secrect word identifying positions ch is in secret_word
-                # create a default dict that holds a list of possible indexes
-        # if false -> break from loop
+        # dict: Dict[Dict[int, bool]] = defaultdict(dict)
+        for i in range(len(player_guess.word[i].name)):
+            #check if char in secrect word
+            in_secrect_word: bool = lambda ch: ch in secrect_word
+            # if not, break out of loop and move to next char
+            if not in_secrect_word: break
+            # check if char in correct idx in relation to secrect word 
+            in_correct_position: bool = lambda ch: i < len(secrect_word) and player_guess[i] == secrect_word[i]
+            # update dictionary
+            update_dict: Dict[str, Dict[str, Any]] = update_dict(player_guess.word[i].name, in_secrect_word, in_correct_position, i)
+            # update game instance
+            self.update_game(dict)
 
 
         pass
