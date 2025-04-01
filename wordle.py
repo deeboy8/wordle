@@ -115,9 +115,10 @@ class Game(BaseModel):
                 'count': count
             } 
         else:
-            letter_info_dict[ch]['in_word'] = in_secrect_word
-            letter_info_dict[ch]['in_position'] = in_correct_position
-            letter_info_dict[ch]['index'] = idx 
+            letter_info_dict[ch]['in_word'] = bool(in_secrect_word)
+            letter_info_dict[ch]['in_position'] = bool(in_correct_position)
+            letter_info_dict[ch]['index'] = int(idx)
+            letter_info_dict[ch]['count'] = int(count)
         
         return dict
 
@@ -129,22 +130,22 @@ class Game(BaseModel):
         standard_values = [False, False, 0, 0]
         # Create a defaultdict with a factory function that returns a dict with standard keys and values
         letter_info_dict = defaultdict(lambda: {key: value for key, value in zip(standard_keys, standard_values)})
-        # Populate it with each letter from player_guess
+        # Populate dict with each letter from player_guess
         for letter in player_guess.word:
             ch = letter.name
             letter_info_dict[ch]  # This will create the default dict entry if it doesn't exist
 
-        for i in range(len(player_guess.word)):
+        for letter in player_guess.word:
             # check if char in secrect word
             in_secrect_word: bool = lambda ch: ch in self
             if not in_secrect_word: break
             # count occurrences of char in secret word
-            count_letter_occurrences: List = lambda ch, self: [i for i, letter in enumerate(self) if letter == ch]  
+            count_letter_occurrences: List = int(lambda ch, self: [i for i, letter in enumerate(self) if letter == ch])
             # print(count_letter_occurrences)
             # check if char in correct idx in relation to secrect word 
             in_correct_position: bool = lambda ch: i < len(self) and player_guess[i] == self[i]
             # update dictionary
-            updated_dict: Dict[str, Dict[bool, Any]] = self.update_dict(letter_info_dict, player_guess.word[i].name, in_secrect_word, in_correct_position, i, count_letter_occurrences)
+            updated_dict: Dict[str, Dict[bool, Any]] = self.update_dict(letter_info_dict, player_guess.word[i].name, in_secrect_word, in_correct_position, i, int(count_letter_occurrences))
         
         print(updated_dict)
         # self.update_game(updated_dict)
