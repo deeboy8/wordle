@@ -123,22 +123,31 @@ class Game(BaseModel):
 
     #will only return bool data and update letter_state changes
     #board will be updated by Game obj
-    def score_player_guess(self, player_guess: "Word", secret_word: str) -> None: #TODO: change secrect_wrod to self (remove from parameter)
+    def score_player_guess(self, player_guess: "Word") -> None: #TODO: change secrect_wrod to self (remove from parameter)
         # create default dict with standard keys and intial values
-        letter_info_dict: Dict[Dict[bool, Any]] = defaultdict(lambda: {'in_word': False, 'in_position': False, 'index': 0, 'count': 0})
+        standard_keys = ['in_word', 'in_position', 'index', 'count']
+        standard_values = [False, False, 0, 0]
+        # Create a defaultdict with a factory function that returns a dict with standard keys and values
+        letter_info_dict = defaultdict(lambda: {key: value for key, value in zip(standard_keys, standard_values)})
+        # Populate it with each letter from player_guess
+        for letter in player_guess.word:
+            ch = letter.name
+            letter_info_dict[ch]  # This will create the default dict entry if it doesn't exist
+
         for i in range(len(player_guess.word)):
             # check if char in secrect word
-            in_secrect_word: bool = lambda ch: ch in secret_word
+            in_secrect_word: bool = lambda ch: ch in self
             if not in_secrect_word: break
             # count occurrences of char in secret word
-            count_letter_occurrences: List = lambda ch, secret_word: [i for i, letter in enumerate(secret_word) if letter == ch]  
+            count_letter_occurrences: List = lambda ch, self: [i for i, letter in enumerate(self) if letter == ch]  
             # print(count_letter_occurrences)
             # check if char in correct idx in relation to secrect word 
-            in_correct_position: bool = lambda ch: i < len(secret_word) and player_guess[i] == secret_word[i]
+            in_correct_position: bool = lambda ch: i < len(self) and player_guess[i] == self[i]
             # update dictionary
             updated_dict: Dict[str, Dict[bool, Any]] = self.update_dict(letter_info_dict, player_guess.word[i].name, in_secrect_word, in_correct_position, i, count_letter_occurrences)
-            
-        self.update_game(updated_dict)
+        
+        print(updated_dict)
+        # self.update_game(updated_dict)
 
         
         # # Update letter state based on the information
@@ -219,16 +228,16 @@ def main():
     for guess in range(MAX_USER_GUESSES):
         player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))
         # Convert players guess into a Word object       
-        player_guess: Word = Word.create(player_guess, game.vocabulary) 
-        print(player_guess)
+        player_guess: Word = Word.create(player_guess, game.vocabulary)
+        # print(player_guess)
         if not player_guess and guess < MAX_USER_GUESSES:
             continue
         check_player_guess: bool = game.is_secret_word(player_guess)
         if check_player_guess:
             print(f"Congratulations, {game.player}. You guessed the secret word: {player_guess}.")
         else:
-            game.score_player_guess(player_guess, game.secret_word)
-        #     only focus is to determine position and correct letters and update information
+            game.score_player_guess(player_guess)
+            # only focus is to determine position and correct letters and update information
 
         #     TODO: must say to game -> board to UPDATE yourself aka pushing responsibility down to lowest point 
         # update board
