@@ -139,24 +139,23 @@ class Game(BaseModel):
 
         for letter in player_guess.word:
             #! if x.name not in letter_info_dict: NEED TO SKIP OVER LETTER IF ALREADY IN DICT
-            # check if char in secrect word
-            # in_secrect_word: bool = ((lambda ch: ch in self)(letter.name))
             letter_info_dict[letter.name]['in_word'] = letter.name in self.secret_word
-            # print(f"letter is: {letter.name} and in secrect word is: {letter_info_dict[letter.name]['in_word']}")
             if not letter_info_dict[letter.name]['in_word']: continue
             # obtain each index position of the letter in secret word (ie. happy returns [2, 3] for each 'p' character)
+            #! doesnt look like you can use a lambda function to update a dictionary
             # count_letter_occurrences: List = lambda ch, self: [i for i, letter in enumerate(self) if letter == ch]
             # count_letter_occurrences: List = [i for i, ch in enumerate(self.secret_word) if ch == letter.name]
-            # if letter_info_dict[letter.name]['in_word']: continue #! fix this
-            letter_info_dict[letter.name]['indices'] = [i for i, ch in enumerate(self.secret_word) if ch == letter.name]
+            if letter_info_dict[letter.name]['indices']: continue
+            #TODO: CREATE A TUPLE WHICH INCLUDES IDX OF SECRET AND LETTER; WILL THEN BE ABLE TO COMPARE IF THEY ARE THE SAME INSTEAD OF DOING IN_CORRECT_POSITION FX BELOW
+            letter_info_dict[letter.name]['indices'] = [i for i, ch in enumerate(self.secret_word) if ch == letter.name] #! need to understand how this is working better 
             print(letter_info_dict[letter.name]['indices'])
             # letter_info_dict[letter.name]['indices'] = count_letter_occurrences
             # print(letter_info_dict[letter.name]['index'])
             # print(count_letter_occurrences)
             # check if char in correct idx in relation to secrect word 
-        #     in_correct_position: bool = lambda ch: i < len(self) and player_guess[i] == self[i]
-        #     # update dictionary
-        #     # updated_dict: Dict[str, Dict[bool, Any]] = self.update_dict(letter_info_dict, player_guess.word[i].name, in_secrect_word, in_correct_position, i, int(count_letter_occurrences))
+            in_correct_position: bool = lambda ch: i < len(self) and player_guess[i] == self[i]
+    #     # update dictionary
+    #     # updated_dict: Dict[str, Dict[bool, Any]] = self.update_dict(letter_info_dict, player_guess.word[i].name, in_secrect_word, in_correct_position, i, int(count_letter_occurrences))
         
         for entry in letter_info_dict.items():
             print(entry)
