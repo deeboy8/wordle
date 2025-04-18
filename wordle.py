@@ -193,6 +193,7 @@ def main():
         check_player_guess: bool = game.is_secret_word(player_guess)
         if check_player_guess:
             print(f"Congratulations, {game.player}. You guessed the secret word: {player_guess}.")
+            exit()
         else:
             game.compare(player_guess)
         # print(repr(player_guess)) #TODO: REMOVE
