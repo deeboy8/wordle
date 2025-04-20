@@ -31,12 +31,27 @@ class Letter(BaseModel): #! ask DG: is each letter an object?????
 
 # #create a Board as a list and appends each user word 
 # class Board(BaseModel):
+    # keep state of board
 #     board: List[Word] = Field([], max_length=MAX_USER_GUESSES)
 #     def insert_user_guess(self, user_guess: Word) -> list:
-#         return self.board.append(user_guess)
+#         self.board.append(user_guess)
+    # what do we want board to do? update state and render itself
+        #fx update -> insert_user_guess -> take single parameter 
+
+class Board(BaseModel):
+    board: List["Word"] = Field([], max_length=MAX_USER_GUESSES)
+
+    def update(self, update_board: Self) -> Self:
+        self.board.append(update_board)
+
+    def draw(self, draw_board: Self) -> None:
+        for word in draw_board.board:
+            print(word)
 
 #! hard mode will use this class
-# class Alphabet(BaseModel): 
+# class Alphabet(BaseModel): #two use cases: 
+    # 1. display keyboard/list of letters that have been used
+    # 2. hard mode
 #     alpha = [Letter(x) for x in range(ord('a'), ord('z') + 1)]  #generate list letters a-z
     
 #     def update_letter_state(self, ch: str) -> None:
@@ -128,7 +143,6 @@ class Word(BaseModel):
         word_as_str: str = ""
         for letter in self.word:
             word_as_str += letter.name
-        # print(word_as_str)
         return word_as_str
     
     def __repr__(self) -> str:
@@ -199,8 +213,6 @@ def main():
         # print(repr(player_guess)) #TODO: REMOVE
         print(f"You have {MAX_USER_GUESSES - guess - 1} guesses left.")
         
-
-        #TODO: must say to game -> board to UPDATE yourself aka pushing responsibility down to lowest point 
         # update board
         #     use game object to update Player (update details), Board (update letters) 
 
