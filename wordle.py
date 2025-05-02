@@ -1,10 +1,14 @@
-
 from typing import List, Dict, Any
 from collections import defaultdict
 from typing_extensions import Self
 from enum import Enum
 from pydantic import BaseModel, Field, model_validator
 import random
+import os
+from colorama import init, Fore, Back, Style
+
+# Initialize colorama
+init()
 
 """!?//todo*
 
@@ -38,15 +42,15 @@ class Letter(BaseModel): #! ask DG: is each letter an object?????
     # what do we want board to do? update state and render itself
         #fx update -> insert_user_guess -> take single parameter 
 
-class Board(BaseModel):
-    board: List["Word"] = Field([], max_length=MAX_USER_GUESSES)
+# class Board(BaseModel):
+#     board: List["Word"] = Field([], max_length=MAX_USER_GUESSES)
 
-    def update(self, update_board: Self) -> Self:
-        self.board.append(update_board)
+#     def update(self, update_board: Self) -> Self:
+#         self.board.append(update_board)
 
-    def draw(self, draw_board: Self) -> None:
-        for word in draw_board.board:
-            print(word)
+#     def draw(self, draw_board: Self) -> None:
+#         for word in draw_board.board:
+#             print(word)
 
 #! hard mode will use this class
 # class Alphabet(BaseModel): #two use cases: 
@@ -104,21 +108,18 @@ class Game(BaseModel):
     def normalize_player_guess(self, player_guess: str) -> str:
         return "".join(player_guess.lower().split())
 
-
     #udpate board, to update game, Word and Player objects
-    def update_game(self, dict: Dict[str, Dict[str, Any]]) -> None:
-        # loop over dictionary making comparison between if in word and correct position to determine color of letter_state
-        # check for count of letter preent in secrect_word
-        # relationships
-            # if in_word == true and in_position true ===> GREEN
-            # if in_word == true and in_position false ===> YELLOW 
-            # if in word == false break
+    def update_game(self, player_guess: "Word") -> None:
+        # number of player guesses
         self.player_guesses += 1
-        # update alphabet
+        print(f"You have {MAX_USER_GUESSES - self.player_guesses} guesses left.")
+        # inform player of number of guesses remaining
+        # update alphabet 
+        # update board
         pass
 
     def compare(self, player_guess: "Word") -> None:
-        #iterate over secret word and compare to player_guess
+        # Compare to player_guess and secret word
         for i, letter in enumerate(player_guess.word):
             if letter.name in self.secret_word: 
                 letter.letter_state = LetterState.yellow
@@ -130,8 +131,6 @@ class Game(BaseModel):
     def is_secret_word(self, player_guess: "Word") -> bool: 
         player_guess_str = str(player_guess)
         return player_guess_str == self.secret_word
-    
-    # def update()
 
 #word will be string user passes in from stdin
 #must be converted from a string word to a list of letters
@@ -158,67 +157,128 @@ class Word(BaseModel):
             return False
         
         return cls(word = [Letter(name=ch) for ch in word_str])
-    
-    ##createe fx str_comp  str argument, game.secrect word for secret word and pass to fx on word object
-    def str_eq(self, s: str) -> bool:
-        #comparing s against word on line 119
-        pass 
-    
-    # def compare_against_secret_word(self) -> bool: #, player_guess: Self) -> bool: 
-    #     for ch, i in self.word, range(len(game.secret_word)):
-    #         if not str(ch.name) == Game.secret_word[i]:
-    #             return False 
-    #     return True
-    
-    def update_color_state(self, ch: str, color: str) -> bool:
-        # if color is green, yellow, grey:
-            # change ch.letterstate to color -> USE THAT THING THAT STARTS WITH A 'C' AND GIVES OPTIONS TO CHOOSE        
-        pass
 
-    def remove_word_from_list(self, user_guess: Self) -> bool:
-        # create list of letters to form a string
-        # remove string from list 
-        pass 
+class Board(BaseModel):
+    """Manages the game board state, storing and displaying player guesses"""
+    words: List[Word] = Field(default_factory=list, max_length=MAX_USER_GUESSES)
+    
+    def add_word(self, word: Word) -> None:
+        """Add a new word to the board if there's space available"""
+        if len(self.words) >= MAX_USER_GUESSES:
+            raise ValueError("Maximum number of guesses reached")
+        self.words.append(word)
+    
+    def get_words(self) -> List[Word]:
+        """Return the current list of words on the board"""
+        return self.words
+    
+    def is_full(self) -> bool:
+        """Check if the board has reached maximum capacity"""
+        return len(self.words) >= MAX_USER_GUESSES
+    
+    def get_word_at_position(self, position: int) -> Word | None:
+        """Get the word at a specific position on the board"""
+        if 0 <= position < len(self.words):
+            return self.words[position]
+        return None
+    
+    def clear(self) -> None:
+        """Clear all words from the board"""
+        self.words.clear()
 
-    def is_letter_in_secrect_word(self, ch: str, secrect_word: str) -> bool:
-        pass
-
-    def is_letter_in_correct_index(self, ch_index: int, secrect_word: str) -> bool:
-        pass
+class Display:
+    """Handles all screen output"""
+    
+    @staticmethod
+    def clear_screen():
+        """Clear the terminal screen"""
+        os.system('cls' if os.name == 'nt' else 'clear')
+    
+    @staticmethod
+    def show_welcome(name: str):
+        """Display welcome message"""
+        Display.clear_screen()
+        print(f"\n{Fore.CYAN}Welcome to Wordle, {name}!{Style.RESET_ALL}")
+        print(f"You have a maximum of {MAX_USER_GUESSES} guesses to guess the secret word.\n")
+    
+    @staticmethod
+    def show_guess_prompt():
+        """Display prompt for user's guess"""
+        return input(f"{Fore.YELLOW}Please enter your guess: {Style.RESET_ALL}")
+    
+    @staticmethod
+    def show_invalid_guess():
+        """Display message for invalid guess"""
+        print(f"{Fore.RED}Invalid guess! Please enter a valid 5-letter word.{Style.RESET_ALL}")
+    
+    @staticmethod
+    def show_guesses_remaining(remaining: int):
+        """Display number of guesses remaining"""
+        print(f"\n{Fore.CYAN}Guesses remaining: {remaining}{Style.RESET_ALL}\n")
+    
+    @staticmethod
+    def show_word(word: "Word"):
+        """Display a word with appropriate colors based on letter states"""
+        for letter in word.word:
+            if letter.letter_state == LetterState.green:
+                print(f"{Back.GREEN}{Fore.BLACK}{letter.name}{Style.RESET_ALL}", end=" ")
+            elif letter.letter_state == LetterState.yellow:
+                print(f"{Back.YELLOW}{Fore.BLACK}{letter.name}{Style.RESET_ALL}", end=" ")
+            elif letter.letter_state == LetterState.grey:
+                print(f"{Back.LIGHTBLACK_EX}{Fore.WHITE}{letter.name}{Style.RESET_ALL}", end=" ")
+            else:
+                print(f"{letter.name}", end=" ")
+        print()
+    
+    @staticmethod
+    def show_board(board: Board):
+        """Display the game board"""
+        print("\nCurrent Board:")
+        print("-" * 15)
+        for word in board.words:
+            Display.show_word(word)
+        print("-" * 15)
+    
+    @staticmethod
+    def show_win_message(player: Player, word: str):
+        """Display win message"""
+        print(f"\n{Fore.GREEN}Congratulations, {player.name}! You guessed the secret word: {word}{Style.RESET_ALL}")
+    
+    @staticmethod
+    def show_lose_message(secret_word: str):
+        """Display lose message"""
+        print(f"\n{Fore.RED}Game Over! The secret word was: {secret_word}{Style.RESET_ALL}")
 
 def main():
     name: str = input("Please enter your name: ") or 'Demitrus'
-    print(f"Welcome to Wordle, {name}!")
-    print("You have a maximum of 6 guesses to guess the secret word.")
+    Display.show_welcome(name) 
     player: Player = Player(name=name, number_of_guesses=MAX_USER_GUESSES)
     game: Game = Game(player=player)
-    print("SECRET WORD: ", game.secret_word) #TODO: REMOVE
+    board = Board()
 
     #iterate over user guesses
     for guess in range(MAX_USER_GUESSES):
-        player_guess: str = game.normalize_player_guess(input("Please enter your guess: "))
+        player_guess: str = game.normalize_player_guess(Display.show_guess_prompt())
         # Convert players guess into a Word object       
-        player_guess: Word = Word.create(player_guess, game.vocabulary)
-        # print(player_guess) #TODO: REMOVE
+        player_guess: Word | bool = Word.create(player_guess, game.vocabulary)
         # Check to see if player guess is valid in vocabulary
-        # If not, continue to next iteration
-        if not player_guess and guess < MAX_USER_GUESSES:
+        if player_guess is False:
+            Display.show_invalid_guess()
             continue
-        check_player_guess: bool = game.is_secret_word(player_guess)
-        if check_player_guess:
-            print(f"Congratulations, {game.player}. You guessed the secret word: {player_guess}.")
-            exit()
-        else:
-            game.compare(player_guess)
-        # print(repr(player_guess)) #TODO: REMOVE
-        print(f"You have {MAX_USER_GUESSES - guess - 1} guesses left.")
+        assert isinstance(player_guess, Word)  # Type narrowing
         
-        # update board
-        #     use game object to update Player (update details), Board (update letters) 
-
+        if game.is_secret_word(player_guess):
+            Display.show_win_message(game.player, str(player_guess))
+            break
+            
+        game.compare(player_guess)
+        board.add_word(player_guess)
+        Display.show_board(board)
         
-#TODO: how will you compare a str (secrect_word) to a word object (player_guess) -> Python may have a method for this
+        remaining_guesses = MAX_USER_GUESSES - (guess + 1)
+        Display.show_guesses_remaining(remaining_guesses)
+    else:
+        Display.show_lose_message(game.secret_word)
     
-
 if __name__ == "__main__":
     main()
